@@ -1,74 +1,87 @@
-# Many-to-many Object Relationships Lab
+class Book:
+    all_books = []
 
-## Learning Goals
+    def __init__(self, title):
+        if not isinstance(title, str):
+            raise Exception("Title must be a string")
+        self._title = title
+        Book.all_books.append(self)
 
-- Create a Many-to-many relationship using an intermediary class.
-- Write aggregate methods.
+    @property
+    def title(self):
+        return self._title
 
-***
+    def contracts(self):
+        return [contract for contract in Contract.all_contracts if contract.book == self]
 
-## Key Vocab
+    def authors(self):
+        # Return unique authors for this book
+        return list({contract.author for contract in self.contracts()})
 
-- **Class**: a bundle of data and functionality. Can be copied and modified to
-accomplish a wide variety of programming tasks.
-- **Object**: the more common name for an instance. The two can usually be used
-interchangeably.
-- **Object-Oriented Programming**: programming that is oriented around data
-(made mobile and changeable in **objects**) rather than functionality. Python
-is an object-oriented programming language.
-- **Function**: a series of steps that create, transform, and move data.
-- **Method**: a function that is defined inside of a class.
 
-***
+class Author:
+    all_authors = []
 
-## Introduction
+    def __init__(self, name):
+        if not isinstance(name, str):
+            raise Exception("Name must be a string")
+        self._name = name
+        Author.all_authors.append(self)
 
-In this lab we will implement a one-to-many relationship between a `Author`, `Book`, and `Contract`.
+    @property
+    def name(self):
+        return self._name
 
-This is a **test-driven lab**. Run `pipenv install` to create your virtual
-environment and `pipenv shell` to enter the virtual environment. Then run
-`pytest -x` to run your tests. Use these instructions and `pytest`'s error
-messages to complete your work in the `lib/` folder.
+    def contracts(self):
+        return [contract for contract in Contract.all_contracts if contract.author == self]
 
-***
+    def books(self):
+        return list({contract.book for contract in self.contracts()})
 
-## Instructions
+    def sign_contract(self, book, date, royalties):
+        # Returns a new Contract object linking self to book with date and royalties
+        return Contract(self, book, date, royalties)
 
-Create a Book class that has the following attributes:  `title` (string)
+    def total_royalties(self):
+        return sum(contract.royalties for contract in self.contracts())
 
-Create an Author class that has the following attributes: `name` (string)
 
-Create a Contract class that has the following properties:
-`author` (Author object), `book` (Book object), `date` (string), and `royalties`
-(int).
+class Contract:
+    all_contracts = []
 
-All classes should also keep track of `all` members using a class variable.
+    def __init__(self, author, book, date, royalties):
+        if not isinstance(author, Author):
+            raise Exception("Author must be an instance of Author class")
+        if not isinstance(book, Book):
+            raise Exception("Book must be an instance of Book class")
+        if not isinstance(date, str):
+            raise Exception("Date must be a string")
+        if not isinstance(royalties, int):
+            raise Exception("Royalties must be an integer")
 
-- The author property should be an instance of the Author class, while the book
-  property should be an instance of the Book class. The date property should be a
-  string that represents the date when the contract was signed, while the
-  royalties property should be a number that represents the percentage of
-  royalties that the author will receive for the book.
-  - All setters should `raise Exception` upon failure.
+        self._author = author
+        self._book = book
+        self._date = date
+        self._royalties = royalties
 
-The `Author` class should have the following methods:
+        Contract.all_contracts.append(self)
 
-- `contracts(self)`: This method should return a list of related contracts.
-- `books(self)`: This method should return a list of related books using the
-  `Contract` class as an intermediary.
-- `sign_contract(book, date, royalties)`: This method should create and return a
-  new `Contract` object between the author and the specified book with the
-  specified date and royalties
-- `total_royalties()`: This method should return the total amount of royalties
-  that the author has earned from all of their contracts.
+    @property
+    def author(self):
+        return self._author
 
-The `Contract` class should have the following methods:
+    @property
+    def book(self):
+        return self._book
 
-- A class method `contracts_by_date`(cls, date): This method should return all
-  contracts that have the same date as the date passed into the method.
+    @property
+    def date(self):
+        return self._date
 
-***
+    @property
+    def royalties(self):
+        return self._royalties
 
-## Resources
-
-- [Python classes](https://docs.python.org/3/tutorial/classes.html)
+    @classmethod
+    def contracts_by_date(cls, date):
+        return [contract for contract in cls.all_contracts if contract.date == date]
